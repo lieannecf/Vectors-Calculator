@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vector Operations Calculator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&family=Patrick+Hand&display=swap">
+<style>
+:root{--paper:#eef3fa;--rule:#d5e1f1;--ink:#16233f;--panel:#fff;--line:#b9c9e0;--accent:#1b3f8f;--accent2:#14306e;--muted:#52607a;--hi:#fff3a6;--edge:#c7d5ea;--field:#fff;--red:#c8372d}
+:root:not([data-theme=light]){color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#0f1727;--rule:#17233b;--ink:#e6edfb;--panel:#17213a;--line:#34456b;--accent:#6f98ff;--accent2:#8fb1ff;--muted:#9fb0d0;--hi:#4a4313;--edge:#0a1020;--field:#0f1727}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;color:var(--ink);font:15.5px/1.6 Lexend,"Segoe UI",'Patrick Hand',Verdana,sans-serif;padding:14px;padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));background-color:var(--paper);background-image:repeating-linear-gradient(transparent 0 31px,var(--rule) 31px 32px)}
+main{max-width:920px;margin:0 auto}
+header{background:#14306e;background-image:linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px);background-size:22px 22px;color:#fff;padding:20px 22px;border-radius:4px;border-left:10px solid var(--red);margin-bottom:14px;box-shadow:4px 4px 0 var(--edge)}
+h1{font:400 2.1rem/1.15 "Patrick Hand",Lexend,sans-serif;margin:0}
+header p{margin:4px 0 0;color:#cdd9f2;font-size:.92rem}
+button{font:inherit;cursor:pointer;border-radius:4px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{padding:7px 13px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink)}
+.tabs button:hover{border-color:var(--accent)}
+.tabs button[aria-pressed=true]{background:var(--accent2);border-color:var(--accent2);color:#fff}
+button:focus-visible,input:focus-visible{outline:3px solid #7da3ff;outline-offset:2px}
+.panel{background:var(--panel);border:1.5px solid var(--line);border-radius:4px;padding:16px;margin-bottom:14px;box-shadow:4px 4px 0 var(--edge)}
+.hint{margin:0 0 10px;color:var(--muted)}
+.vrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.vrow b{min-width:48px}.dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+input[type=number]{width:80px;padding:6px;font:inherit;border:1.5px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink)}
+.sm{padding:5px 11px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink)}
+.sm:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}.sm:disabled{opacity:.4;cursor:default}
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:8px}.ctl label{display:flex;gap:6px;align-items:center}
+.go{padding:8px 16px;border:0;background:var(--accent2);color:#fff}.go:hover{filter:brightness(1.2)}
+canvas{width:100%;max-width:900px;height:auto;background:#fff;border:1.5px solid var(--line);border-radius:4px;display:block}
+pre{margin:0;white-space:pre-wrap;font:14.5px/1.7 Consolas,monospace}
+.fin{background:var(--hi);border-left:5px solid var(--red);padding:8px 12px;border-radius:3px;font-weight:600;font-size:1.15rem;margin-bottom:6px}
+h2{font:400 1.45rem/1.2 "Patrick Hand",Lexend,sans-serif;margin:14px 0 6px}h2:first-child{margin-top:0}
+.he{border:1.5px solid var(--line);border-radius:4px;padding:10px 12px;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:space-between;align-items:center}
+.he div{min-width:0}.he small{color:var(--muted);display:block}.he .a{font-weight:600}
+.hl{display:flex;gap:10px;align-items:flex-start;min-width:0}.he input[type=checkbox],#hall{width:18px;height:18px;margin:3px 0 0}#hall{margin:0}
+.pick{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1.5px dashed var(--line)}.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip[aria-pressed=true]{background:var(--accent2);border-color:var(--accent2);color:#fff}.ord{display:inline-block;margin-left:7px;min-width:20px;height:20px;line-height:20px;border-radius:10px;background:#fff;color:#14306e;font-size:.78rem;font-weight:600;text-align:center}
+.expr{margin:6px 0 0;font-weight:600;font-size:1.05rem}
+.empty{color:var(--muted);margin:6px 0 0}
+</style></head><body><main>
+<header><h1>Vector Operations Calculator</h1><p>Add, subtract, scale and measure vectors. Every answer comes with the steps.</p></header>
+<div class="tabs" id="tabs" role="group" aria-label="Operation"></div>
+<div class="panel">
+ <p class="hint" id="hint"></p>
+ <div class="ctl" style="margin:0 0 10px"><b>Space</b>
+  <label><input type="radio" name="d" value="2" checked> 2D</label><label><input type="radio" name="d" value="3" id="d3"> 3D</label>
+  <label id="kw">Scalar k <input type="number" id="k" step="any" value="2"></label><label><input type="checkbox" id="showg" checked> Show graph</label></div>
+ <div id="vecs"></div>
+ <button class="sm" id="add">+ Add vector</button>
+ <div class="pick"><b>Solve</b><span id="chips" class="chips"></span><button class="sm" id="pall">All</button><button class="sm" id="prev">Reverse</button><button class="sm" id="pclr">Clear</button></div>
+ <p class="hint" style="margin:6px 0 0">Tap the vectors in the order you want to use them. For example, tap V2 then V1 to solve V2 − V1.</p><p class="expr" id="expr"></p>
+</div>
+<div class="panel" id="gp">
+ <canvas id="cv" width="900" height="620" aria-label="Graph of the vectors"></canvas>
+ <p class="hint" id="key" style="margin:10px 0 0"></p>
+ <div class="ctl" id="rot"><label>Rotate <input type="range" id="yaw" min="-180" max="180" value="35"></label><label>Tilt <input type="range" id="pit" min="0" max="85" value="25"></label></div>
+ <div class="ctl"><button class="go" id="dlp">Download graph (PNG)</button></div>
+</div>
+<div class="panel"><div class="ctl" style="margin:0 0 6px;justify-content:space-between"><h2 style="margin:0">Solution (step by step)</h2><span><button class="sm" id="cpy">Copy results</button> <span id="cmsg" role="status"></span></span></div><pre id="steps"></pre><h2>Answer</h2><div id="ans"></div><h2>In plain words</h2><p id="plain" style="margin:0"></p></div>
+<div class="panel"><div class="ctl" style="margin:0 0 6px;justify-content:space-between"><h2 style="margin:0">History</h2><span class="ctl" style="margin:0"><label><input type="checkbox" id="hall"> Select all</label><button class="sm" id="hdel" disabled>Delete</button></span></div><div id="hist"></div></div>
+</main>
+<script>
+const $=id=>document.getElementById(id),r=n=>Math.round(n*1e4)/1e4,D=x=>x*180/Math.PI;
+const COL=["#d62728","#1f77b4","#2ca02c","#ff7f0e","#9467bd","#8c564b","#e377c2","#17becf","#bcbd22","#7f7f7f"];
+const OPS={add:["Addition","Adds all vectors: V₁ + V₂ + … (tip-to-tail; the black arrow is the sum)."],
+sub:["Subtraction","V₁ − V₂ − V₃ … (each later vector is reversed and added to V₁)."],
+sca:["Scalar","Multiplies every vector by k (dashed = original, solid = scaled)."],
+dot:["Dot product","Dot product (and angle) of every pair of vectors – the result is a number."],
+crs:["Cross product","Left to right: (V₁ × V₂) × V₃ … 3D only. The result is perpendicular to the vectors multiplied."],
+mag:["Magnitude","The length of each vector, written ‖V‖ = √(x² + y² + z²)."],
+dir:["Direction","Unit vector and direction angles of each vector (thick arrow = unit vector)."]};
+let cur="add",dim=2,vecs=[[3,4,0],[1,2,2]],use=[0,1],txt="";
+Object.keys(OPS).forEach(k=>{const b=document.createElement("button");b.textContent=OPS[k][0];b.dataset.k=k;b.onclick=()=>sel(k);$("tabs").appendChild(b)});
+function sel(k){cur=k;$("hint").textContent=OPS[k][1];$("kw").style.display=k=="sca"?"":"none";
+ document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==k));
+ document.querySelector('input[name=d][value="2"]').disabled=k=="crs";if(k=="crs")setDim(3);drawChips();render()}
+function setDim(n){dim=n;document.querySelector(`input[name=d][value="${n}"]`).checked=true;$("rot").style.display=n==3?"":"none";drawVecs()}
+document.querySelectorAll("input[name=d]").forEach(e=>e.onchange=()=>{setDim(+e.value);render()});
+function drawVecs(){const c=$("vecs");c.innerHTML="";vecs.forEach((v,i)=>{const d=document.createElement("div");d.className="vrow";
+ d.innerHTML=`<span class="dot" style="background:${COL[i%10]}"></span><b>V${i+1}</b>`+["x","y","z"].slice(0,dim).map((n,j)=>`<label>${n} <input type="number" step="any" value="${v[j]}" data-i="${i}" data-j="${j}"></label>`).join("")+`<button class="sm" data-rm="${i}" ${vecs.length<2?"disabled":""} aria-label="Remove V${i+1}">Remove</button>`;c.appendChild(d)});
+ c.querySelectorAll("input").forEach(e=>e.oninput=()=>{vecs[e.dataset.i][e.dataset.j]=parseFloat(e.value)||0;render()});
+ c.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{const q=+b.dataset.rm;vecs.splice(q,1);use=use.filter(x=>x!=q).map(x=>x>q?x-1:x);drawVecs();render()});drawChips()}
+$("add").onclick=()=>{if(vecs.length>=10)return;vecs.push([1,1,1]);use.push(vecs.length-1);drawVecs();render()};
+$("k").oninput=render;$("yaw").oninput=render;$("pit").oninput=render;
+const V=()=>use.filter(i=>i<vecs.length).map(i=>{const v=vecs[i];return dim==2?[v[0],v[1],0]:[...v]});
+const fv=v=>"("+v.slice(0,dim).map(r).join(", ")+")",nm=v=>Math.hypot(...v),add=(a,b)=>a.map((x,i)=>x+b[i]),neg=a=>a.map(x=>-x);
+const sq=n=>{n=r(n);const q=Math.sqrt(n);return Number.isInteger(q)?""+q:`√${n} ≈ ${r(q)}`};
+const sum2=v=>v.slice(0,dim).map(x=>`(${r(x)})²`).join(" + ");
+const dotp=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
+function calc0(){const v=V(),n=v.length,it=[],O=[0,0,0],steps=[],ans=[],AX=["x","y","z"].slice(0,dim);let plain="",poly=null,leg="",arcs=[];
+ const mg=(t,p)=>t+" = "+Math.round(nm(p)*100)/100,rb=a=>{const q=[O,[a[0],0,0],[a[0],a[1],0]];q.lab=["x = "+r(a[0]),"y = "+r(a[1])];return q},lb=(t,p)=>t+" = "+fv(p),note=dim==2?"A vector (x, y) means: move x across (right is +, left is −) and y up (up is +, down is −).":"A vector (x, y, z) means: move x along the x-axis, y along the y-axis and z along the z-axis.";
+ const cn=(a,j,op)=>`  ${a}: ${v.map(x=>r(x[j])).join(op)}`;
+ if(cur=="add"){let acc=O,pts=[O];steps.push(note,"Add the matching parts of the vectors (x with x, y with y"+(dim==3?", z with z":"")+"):");
+  AX.forEach((a,j)=>steps.push(cn(a,j," + ")+" = "+r(v.reduce((s,x)=>s+x[j],0))));
+  if(n==2){acc=add(v[0],v[1]);it.push({a:O,b:v[0],c:COL[0],l:lb("V1",v[0]),mid:1},{a:v[0],b:acc,c:COL[1],l:lb("V2",v[1]),mid:1})}
+  else{v.forEach((x,i)=>{const nx=add(acc,x);it.push({a:acc,b:nx,c:COL[i%10],l:lb("V"+(i+1),x),mid:1});acc=nx;pts.push(acc)});poly=pts}
+  it.push({a:O,b:acc,c:"#111",l:"Sum = "+fv(acc),w:3,d:1});poly=null;leg="";
+  steps.push("‖Sum‖ = "+sq(dotp(acc,acc)));ans.push("Sum = "+fv(acc));
+  plain="Adding vectors means doing one move after the other. Start at the origin, follow V1, then follow V2 from where V1 ended. The black dashed line goes straight from the start to the finish: that is the sum."}
+ else if(cur=="sub"){let acc=v[0],pts=[O,v[0]];steps.push(note,"Subtract the matching parts (first vector minus the others):");
+  AX.forEach((a,j)=>steps.push(cn(a,j," − ")+" = "+r(v[0][j]-v.slice(1).reduce((s,x)=>s+x[j],0))));
+  if(n==1)steps.push("Add a second vector to subtract.");
+  if(n==2){const m2=neg(v[1]);acc=add(v[0],m2);it.push({a:O,b:v[0],c:COL[0],l:lb("V1",v[0]),mid:1},{a:acc,b:v[0],c:COL[1],l:lb("V2",v[1]),mid:1})}
+  else{v.slice(1).forEach((x,i)=>{const nx=add(acc,neg(x));it.push({a:acc,b:nx,c:COL[(i+1)%10],l:lb("−V"+(i+2),neg(x)),mid:1});acc=nx;pts.push(acc)});it.unshift({a:O,b:v[0],c:COL[0],l:lb("V1",v[0]),mid:1});poly=pts}
+  it.push({a:O,b:acc,c:"#111",l:"Result = "+fv(acc),w:3,d:1});poly=null;leg="";
+  steps.push("‖Result‖ = "+sq(dotp(acc,acc)));ans.push("Result = "+fv(acc));
+  plain="Subtracting a vector is the same as flipping it around and then adding it. Drawn as a triangle: V1 is the first side, V2 is the second side, and the black dashed line from the start is V1 − V2 (so V1 = (V1 − V2) + V2)."}
+ else if(cur=="sca"){const k=parseFloat($("k").value)||0;steps.push(note,`Multiply every part by k = ${r(k)}:`);
+  v.forEach((x,i)=>{const s=x.map(y=>y*k);it.push({a:O,b:s,c:COL[i%10],l:lb(r(k)+"·V"+(i+1),s),w:3});
+   steps.push(`V${i+1}: `+AX.map((a,j)=>`${a}: ${r(k)} × ${r(x[j])} = ${r(s[j])}`).join(",  "));ans.push(`${r(k)} × V${i+1} = ${fv(s)}`)});
+  plain=(k<0?"A negative scalar flips the arrow to point the opposite way. ":k==0?"Multiplying by 0 shrinks the vector to a single point. ":"A positive scalar keeps the direction. ")+"A scalar bigger than 1 stretches the arrow; between 0 and 1 it shrinks it."}
+ else if(cur=="dot"){v.forEach((x,i)=>it.push({a:O,b:x,c:COL[i%10],l:lb("V"+(i+1),x)}));if(n<2)steps.push("Add a second vector to take a dot product.");
+  steps.push("Multiply the matching parts, then add the results.");
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const d=dotp(v[i],v[j]),m=nm(v[i])*nm(v[j]);
+   steps.push(`V${i+1} · V${j+1} = `+v[i].slice(0,dim).map((x,t)=>`(${r(x)})(${r(v[j][t])})`).join(" + ")+" = "+r(d));ans.push(`V${i+1} · V${j+1} = ${r(d)}`);
+   if(m){const c=Math.max(-1,Math.min(1,d/m));const ag=r(D(Math.acos(c)));steps.push(`  ‖V${i+1}‖ = ${sq(dotp(v[i],v[i]))},  ‖V${j+1}‖ = ${sq(dotp(v[j],v[j]))}`,`  Angle: θ = cos⁻¹( V${i+1}·V${j+1} ÷ (‖V${i+1}‖‖V${j+1}‖) ) = cos⁻¹(${r(d)} ÷ ${r(m)}) = ${ag}°`);ans[ans.length-1]+=`   (angle ${ag}°)`;arcs.push({a:v[i],b:v[j],t:Math.round(ag*10)/10+"°",c:"#222",k:arcs.length});
+    steps.push("  Meaning: "+(Math.abs(d)<1e-9?"the vectors are at right angles (perpendicular).":Math.abs(Math.abs(c)-1)<1e-9?"the vectors are parallel.":d>0?"they point in roughly the same direction.":"they point in roughly opposite directions."))}else steps.push("  Angle is not defined because one vector is zero.")}
+  plain="The dot product turns two vectors into one single number (not an arrow). A positive number means the vectors lean the same way, 0 means they meet at a right angle, and a negative number means they lean opposite ways. It is also used to find the angle between two vectors (shown as an arc on the graph)."}
+ else if(cur=="crs"){v.forEach((x,i)=>it.push({a:O,b:x,c:COL[i%10],l:lb("V"+(i+1),x)}));let acc=v[0];if(n<2)steps.push("Add a second vector to take a cross product.");
+  steps.push("Work left to right: (V1 × V2), then that result × V3, and so on.");
+  v.slice(1).forEach((b,i)=>{const a=acc,c=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],nm_=i?"R"+i:"V1";
+   steps.push(`${nm_} × V${i+2}:`,`  x = (${r(a[1])})(${r(b[2])}) − (${r(a[2])})(${r(b[1])}) = ${r(c[0])}`,`  y = (${r(a[2])})(${r(b[0])}) − (${r(a[0])})(${r(b[2])}) = ${r(c[1])}`,`  z = (${r(a[0])})(${r(b[1])}) − (${r(a[1])})(${r(b[0])}) = ${r(c[2])}`);
+   acc=c;});
+  if(n>1){it.push({a:O,b:acc,c:"#111",l:"Result = "+fv(acc),w:3,d:1});leg="";ans.push("Result = "+fv(acc));steps.push("‖Result‖ = "+sq(dotp(acc,acc)))}
+  plain="The cross product of two 3D vectors is a new vector that points at right angles to both of them (use the Rotate slider to see it). Its length equals the area of the parallelogram the two vectors make. Swapping the order flips the result, so V1 × V2 is not the same as V2 × V1."}
+ else if(cur=="mag"){steps.push("Square each part, add them up, then take the square root (Pythagorean theorem).");
+  v.forEach((x,i)=>{const m=nm(x);steps.push(`‖V${i+1}‖ = √(${sum2(x)}) = √${r(dotp(x,x))} = ${sq(dotp(x,x))}`);ans.push(`‖V${i+1}‖ = ${sq(dotp(x,x))}`);it.push({a:O,b:x,c:COL[i%10],l:`V${i+1} = ${fv(x)}, ‖V${i+1}‖ = ${r(m)}`})});
+  plain="Magnitude is simply the length (size) of the arrow, ignoring its direction. It is written ‖V‖ (double vertical lines). It is found with the Pythagorean theorem, the same way you find the long side of a right triangle."}
+ else if(cur=="dir"){steps.push("A unit vector points the same way as the vector but has length 1: divide each part by the length.");
+  v.forEach((x,i)=>{const m=nm(x);if(!m){steps.push(`V${i+1}: direction is undefined (zero vector).`);return}
+   const u=x.map(y=>y/m);it.push({a:O,b:u,c:COL[i%10],l:lb("û"+(i+1),u),w:4});steps.push(`V${i+1}: ‖V${i+1}‖ = ${r(m)},  unit vector = V${i+1} ÷ ‖V${i+1}‖ = ${fv(x)} ÷ ${r(m)} = ${fv(u)}`);ans.push(`Unit vector of V${i+1} = ${fv(u)}`);
+   if(dim==2){const t=D(Math.atan2(x[1],x[0]));steps.push(`  Angle: tan θ = ${r(x[1])} ÷ ${r(x[0])}, so θ = ${r(t)}° (same as ${r((t+360)%360)}°), measured from the +x axis, counter-clockwise.`);ans.push(`Direction of V${i+1} = ${r(t)}° from the +x axis`);arcs.push({a:[1,0,0],b:u,t:"θ = "+Math.round(t*10)/10+"°",c:COL[i%10],k:i})}
+   else{const an=u.map(y=>r(D(Math.acos(Math.max(-1,Math.min(1,y)))))),g=an.map(y=>y+"°").join(", ");[[1,0,0],[0,1,0],[0,0,1]].forEach((e,q)=>arcs.push({a:e,b:u,t:["α","β","γ"][q]+" = "+an[q]+"°",c:COL[i%10],k:q}));steps.push("  Angles from the x, y and z axes: "+g);ans.push(`Angles of V${i+1} from x, y, z axes = ${g}`)}});
+  plain="Direction tells you where the arrow points. The angle is measured from the positive x-axis (turning counter-clockwise). The thick arrow is the unit vector: the same direction, but exactly 1 long. The arc on the graph shows the angle."}
+ return{ans,steps,plain,it,poly,leg,arcs}}
+function calc(){if(!V().length)return{ans:[],steps:["Choose at least one vector to solve (tap V1, V2 … above)."],plain:"",it:[],poly:null,leg:"",arcs:[]};
+ const R=calc0(),f=t=>typeof t=="string"?t.replace(/([Vû])(\d+)/g,(m,a,d)=>a+(use[+d-1]!=null?use[+d-1]+1:d)):t;
+ R.steps=R.steps.map(f);R.ans=R.ans.map(f);R.plain=f(R.plain);R.it.forEach(t=>{t.l=f(t.l)});R.arcs.forEach(t=>{t.t=f(t.t)});return R}
+const cv=$("cv"),ctx=cv.getContext("2d");
+let last={ans:[],steps:[],plain:""};
+function render(){const R=calc();last=R;queueSave();let k=0;const steps=R.steps.map(l=>/^\s/.test(l)?l:`Step ${++k}. ${l}`).join("\n");
+ const a=$("ans");a.textContent="";R.ans.forEach(t=>{const d=document.createElement("div");d.className="fin";d.textContent=t;a.appendChild(d)});if(!R.ans.length)a.textContent="Choose the vectors to use above (this operation needs at least two).";
+ $("key").textContent=KEY[cur];$("steps").textContent=steps;$("plain").textContent=R.plain;
+ txt=OPS[cur][0]+" ("+dim+"D)\nGiven:\n"+vecs.map((v,i)=>"V"+(i+1)+" = "+fv(v)).join("\n")+(cur=="sca"?"\nk = "+r(parseFloat($("k").value)||0):"")+"\nSolving: "+exprOf(cur,use)+"\n\nSOLUTION (step by step)\n"+steps+"\n\nANSWER\n"+R.ans.join("\n")+"\n\nIN PLAIN WORDS\n"+R.plain+"\n";
+ const on=$("showg").checked;$("gp").style.display=on?"":"none";if(on)graph(R.it,R.poly,R.leg,R.arcs)}
+const KEY={add:"Solid lines are the vectors, placed tip to tail. The dashed line is the answer.",sub:"Solid lines are the vectors. The dashed line is the answer.",sca:"The arrows are the scaled vectors.",dot:"The arc shows the angle between the vectors.",crs:"The black arrow is the answer. Use Rotate and Tilt to turn the graph.",mag:"Each label shows the length of its vector.",dir:"Each arrow is a unit vector (length 1). The arc shows the direction angle."};
+function graph(items,poly,leg,arcs){const W=cv.width,H=cv.height,c=ctx,F="Lexend,'Segoe UI',Verdana,sans-serif",INK="#16233f",RED="#c8372d";
+ c.clearRect(0,0,W,H);c.fillStyle="#fff";c.fillRect(0,0,W,H);
+ const yaw=$("yaw").value*Math.PI/180,pit=$("pit").value*Math.PI/180,pts=[];items.forEach(t=>pts.push(t.a,t.b));
+ let P,S,M=1,st,ox=W/2,oy=H/2;
+ const halo=(t,x,y,col,f,al)=>{c.font=f;c.textAlign=al||"left";c.lineWidth=4;c.strokeStyle="#fff";c.strokeText(t,x,y);c.fillStyle=col;c.fillText(t,x,y);c.textAlign="left"};
+ const px=(a,b,col,w,dash)=>{c.beginPath();c.setLineDash(dash?[8,6]:[]);c.strokeStyle=col;c.lineWidth=w;c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();c.setLineDash([])};
+ const arrow=(p,q,col,sz)=>{const an=Math.atan2(q[1]-p[1],q[0]-p[0]);c.beginPath();c.fillStyle=col;c.moveTo(q[0],q[1]);c.lineTo(q[0]-sz*Math.cos(an-.38),q[1]-sz*Math.sin(an-.38));c.lineTo(q[0]-sz*Math.cos(an+.38),q[1]-sz*Math.sin(an+.38));c.closePath();c.fill()};
+ if(dim==2){let x0=0,x1=0,y0=0,y1=0;pts.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
+  const sx=Math.max(x1-x0,3),sy=Math.max(y1-y0,3),mx=110,my=80;S=Math.min((W-2*mx)/sx,(H-2*my)/sy);
+  ox=mx+(W-2*mx-sx*S)/2-x0*S;oy=H-my-(H-2*my-sy*S)/2+y0*S;P=p=>[ox+p[0]*S,oy-p[1]*S];
+  const raw=Math.max(sx,sy)/10,e=Math.pow(10,Math.floor(Math.log10(raw)));st=[1,2,5,10].map(m=>m*e).find(s=>s>=raw-1e-9);
+  const ga=Math.ceil(-ox/S/st)*st,gb=Math.floor((W-ox)/S/st)*st,gc=Math.ceil((oy-H)/S/st)*st,gd=Math.floor(oy/S/st)*st;
+  for(let g=ga;g<=gb+1e-9;g+=st)px([ox+g*S,0],[ox+g*S,H],"#d3e2f3",1);for(let g=gc;g<=gd+1e-9;g+=st)px([0,oy-g*S],[W,oy-g*S],"#d3e2f3",1);
+  px([0,oy],[W-6,oy],INK,2);px([ox,H],[ox,6],INK,2);arrow([0,oy],[W-2,oy],INK,12);arrow([ox,H],[ox,2],INK,12);
+  halo("x",W-18,oy-12,INK,"bold 17px "+F);halo("y",ox+12,20,INK,"bold 17px "+F);
+  const TF="600 14px "+F,TC="#16233f";
+  for(let g=ga;g<=gb+1e-9;g+=st){const X=ox+g*S;px([X,oy-5],[X,oy+5],INK,2);if(Math.abs(g)>1e-9)halo(""+r(g),X,oy+25,TC,TF,"center")}
+  for(let g=gc;g<=gd+1e-9;g+=st){const Y=oy-g*S;px([ox-5,Y],[ox+5,Y],INK,2);if(Math.abs(g)>1e-9)halo(""+r(g),ox-12,Y+5,TC,TF,"right")}
+  halo("0",ox-12,oy+25,TC,TF,"right")}
+ else{pts.forEach(p=>p.forEach(x=>M=Math.max(M,Math.abs(x))));M*=1.3;S=(Math.min(W,H)/2-55)/M;
+  P=p=>{const x1=p[0]*Math.cos(yaw)-p[1]*Math.sin(yaw),y1=p[0]*Math.sin(yaw)+p[1]*Math.cos(yaw);return[W/2+x1*S,H/2+16-(p[2]*Math.cos(pit)+y1*Math.sin(pit))*S]};
+  const e=Math.pow(10,Math.floor(Math.log10(M/4)));st=[1,2,5,10].map(m=>m*e).find(s=>M/s<=6)||e*10;const R=Math.floor(M/st)*st,L3=(a,b,col,w)=>px(P(a),P(b),col,w);
+  for(let g=-R;g<=R+1e-9;g+=st){L3([g,-M,0],[g,M,0],"#d3e2f3",1);L3([-M,g,0],[M,g,0],"#d3e2f3",1)}
+  [["x",[M,0,0]],["y",[0,M,0]],["z",[0,0,M]]].forEach(([n,p])=>{L3(neg(p),p,INK,2);const q=P(p);arrow(P(neg(p).map(x=>x*.9)),q,INK,12);halo(n,q[0]+8,q[1]-8,INK,"bold 17px "+F)});
+  for(let g=-R;g<=R+1e-9;g+=st){if(Math.abs(g)<1e-9)continue;[[g,0,0],[0,g,0],[0,0,g]].forEach(p=>{const q=P(p);halo(""+r(g),q[0]+6,q[1]+14,"#16233f","600 13px "+F)})}}
+ let cx=0,cy=0;pts.forEach(p=>{const q=P(p);cx+=q[0];cy+=q[1]});cx/=pts.length;cy/=pts.length;
+ items.forEach(t=>{const p=P(t.a),q=P(t.b);px(p,q,t.c,t.w||3,t.d);if(Math.hypot(q[0]-p[0],q[1]-p[1])>8)arrow(p,q,t.c,15);c.beginPath();c.fillStyle=t.c;c.arc(q[0],q[1],4.5,0,7);c.fill()});
+ const placed=[],seen={};
+ const pill=(txt,x,y,col,dx,dy,fnt)=>{c.font=fnt||"600 13px "+F;const tw=c.measureText(txt).width+16,th=24;let X,Y;
+  for(let k=0;k<8;k++){X=Math.min(W-tw/2-4,Math.max(tw/2+4,x+dx*k*26));Y=Math.min(H-th/2-4,Math.max(th/2+4,y+dy*k*26));if(!placed.some(q=>Math.abs(q[0]-X)<(q[2]+tw)/2&&Math.abs(q[1]-Y)<(q[3]+th)/2))break}
+  placed.push([X,Y,tw,th]);c.beginPath();c.roundRect?c.roundRect(X-tw/2,Y-th/2,tw,th,7):c.rect(X-tw/2,Y-th/2,tw,th);c.fillStyle="#fff";c.fill();c.strokeStyle=col;c.lineWidth=1.5;c.stroke();
+  c.fillStyle=col;c.textAlign="center";c.textBaseline="middle";c.fillText(txt,X,Y+1);c.textAlign="left";c.textBaseline="alphabetic"};
+ const out=(q,d)=>{let ux=q[0]-cx,uy=q[1]-cy,m=Math.hypot(ux,uy);if(m<1){ux=1;uy=-1;m=1.41}return[ux/m,uy/m]};
+ const O3=P([0,0,0]);
+ (arcs||[]).forEach(A=>{const un=x=>{const m=nm(x);return x.map(y=>y/m)},ua=un(A.a),ub=un(A.b),ph=Math.acos(Math.max(-1,Math.min(1,dotp(ua,ub))));if(ph<.02||ph>Math.PI-.02)return;
+  const rad=dim==2?(48+24*(A.k%4))/S:M*(.28+.08*(A.k%4)),ap=[];for(let n=0;n<=24;n++){const t=n/24,w1=Math.sin((1-t)*ph)/Math.sin(ph),w2=Math.sin(t*ph)/Math.sin(ph);ap.push(ua.map((x,q)=>rad*(w1*x+w2*ub[q])))}
+  c.beginPath();ap.forEach((p,i)=>{const q=P(p);i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.strokeStyle=A.c;c.lineWidth=3;c.stroke();
+  const m=P(ap[12]);let ux=m[0]-O3[0],uy=m[1]-O3[1],l=Math.hypot(ux,uy)||1;A.px=[m,ux/l,uy/l]});
+ items.forEach(t=>{if(dim==2&&t.ang){const p=P(t.a);let th=Math.atan2(t.b[1]-t.a[1],t.b[0]-t.a[0]);if(th<0)th+=2*Math.PI;
+   if(th>.01&&th<6.27){const rd=42;px(p,[p[0]+rd+30,p[1]],RED,1.5,1);c.beginPath();c.strokeStyle=RED;c.lineWidth=3;c.arc(p[0],p[1],rd,0,-th,true);c.stroke();
+    const ca=Math.cos(th/2),sa=-Math.sin(th/2);pill(Math.round(D(th)*10)/10+"°",p[0]+(rd+26)*ca,p[1]+(rd+26)*sa,RED,ca,sa,"600 14px "+F)}}});
+ (arcs||[]).forEach(A=>{if(A.px)pill(A.t,A.px[0][0]+A.px[1]*20,A.px[0][1]+A.px[2]*20,A.c,A.px[1],A.px[2])});
+ items.forEach(t=>{const p=P(t.a),q=P(t.b);
+  if(t.mid){const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy)||1;let nx=-dy/l,ny=dx/l;
+   if(Math.hypot(mx+nx-cx,my+ny-cy)<Math.hypot(mx-nx-cx,my-ny-cy)){nx=-nx;ny=-ny}pill(t.l,mx+nx*24,my+ny*24,t.c,nx,ny)}
+  else if(t.l){const o=out(q);pill(t.l,q[0]+o[0]*30,q[1]+o[1]*30,t.c,o[0],o[1])}
+  if(t.pt&&!seen[fv(t.b)]){seen[fv(t.b)]=1;const o=out(q);pill(fv(t.b),q[0]+o[0]*34,q[1]+o[1]*34,"#52607a",o[0],o[1],"12.5px "+F)}})}
+$("dlp").onclick=()=>{const W=cv.width,H=cv.height,P=18,LH=24,rows=[{t:OPS[cur][0]+" ("+dim+"D) - given vectors",h:1}];vecs.forEach((v,i)=>rows.push({t:"V"+(i+1)+" = "+fv(v)}));rows.push({t:"Solving: "+exprOf(cur,use)});if(cur=="sca")rows.push({t:"k = "+r(parseFloat($("k").value)||0)});
+ const o=document.createElement("canvas");o.width=W;o.height=H+P*2+rows.length*LH;const c=o.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,W,o.height);c.drawImage(cv,0,0);c.strokeStyle="#b9c9e0";c.lineWidth=2;c.beginPath();c.moveTo(0,H+1);c.lineTo(W,H+1);c.stroke();
+ rows.forEach((q,i)=>{c.fillStyle="#16233f";c.font=(q.h?"bold ":"")+"15px Consolas, 'Courier New', monospace";c.fillText(q.t,P,H+P+i*LH+16)});
+ o.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="vector-graph.png";a.click()},"image/png")};
+$("cpy").onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(txt);ok=true}catch(e){const t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{ok=document.execCommand("copy")}catch(e2){}t.remove()}
+ $("cmsg").textContent=ok?"Copied!":"Could not copy. Select the text and copy it manually.";setTimeout(()=>$("cmsg").textContent="",2500)};
+$("showg").onchange=render;
+
+const OPCH={add:" + ",sub:" − ",dot:" · ",crs:" × "},exprOf=(k,u)=>u.length?u.map(i=>"V"+(i+1)).join(OPCH[k]||", "):"nothing selected";
+function drawChips(){const c=$("chips");c.textContent="";vecs.forEach((v,i)=>{const b=mk("button","sm chip"),o=use.indexOf(i);b.textContent="V"+(i+1);b.style.borderLeft="6px solid "+COL[i%10];b.setAttribute("aria-pressed",o>=0);if(o>=0)b.appendChild(mk("span","ord",o+1));b.onclick=()=>{if(o>=0)use.splice(o,1);else use.push(i);drawChips();render()};c.appendChild(b)});$("expr").textContent="Solving: "+exprOf(cur,use)}
+$("pall").onclick=()=>{use=vecs.map((_,i)=>i);drawChips();render()};$("prev").onclick=()=>{use.reverse();drawChips();render()};$("pclr").onclick=()=>{use=[];drawChips();render()};
+let hist=[],armed=false,skip=false,tm=0,pick=new Set();
+try{hist=JSON.parse(localStorage.getItem("vec-hist")||"[]")}catch(e){}
+hist.forEach((e,i)=>{if(!e.id)e.id="h"+Date.now()+i});
+function saveH(){try{localStorage.setItem("vec-hist",JSON.stringify(hist))}catch(e){}}
+function mk(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+const hkey=(o,d,k,v,u)=>{const U=u||v.map((_,i)=>i);return JSON.stringify([o,d,o=="sca"?k:0,U,U.map(i=>v[i]&&v[i].slice(0,d))])};
+function commit(){if(!last.ans.length)return;const k=r(parseFloat($("k").value)||0);
+ if(hist.some(e=>hkey(e.key,e.dim,e.k,e.vecs,e.use)==hkey(cur,dim,k,vecs,use)))return;
+ hist.unshift({id:"h"+Date.now()+Math.random().toString(36).slice(2,6),key:cur,op:OPS[cur][0],dim,k,use:[...use],vecs:vecs.map(v=>[...v]),ans:[...last.ans],time:new Date().toLocaleString()});
+ hist=hist.slice(0,50);saveH();drawH();$("cmsg").textContent="Saved to history.";setTimeout(()=>$("cmsg").textContent="",1800)}
+function queueSave(){if(!armed||skip)return;clearTimeout(tm);tm=setTimeout(commit,1200)}
+addEventListener("input",()=>armed=true,true);addEventListener("click",()=>armed=true,true);
+function drawH(){const h=$("hist");h.textContent="";const ids=new Set(hist.map(e=>e.id));[...pick].forEach(i=>{if(!ids.has(i))pick.delete(i)});
+ $("hall").checked=hist.length>0&&pick.size==hist.length;$("hall").disabled=!hist.length;$("hdel").disabled=!pick.size;$("hdel").setAttribute("aria-label",pick.size?"Delete "+pick.size+" selected entries":"Delete selected entries");
+ if(!hist.length){h.appendChild(mk("p","empty","Nothing here yet. Your calculations are saved automatically."));return}
+ hist.forEach(e=>{const row=mk("div","he"),L=mk("div","hl"),cb=document.createElement("input");cb.type="checkbox";cb.checked=pick.has(e.id);cb.setAttribute("aria-label","Select this entry");cb.onchange=()=>{cb.checked?pick.add(e.id):pick.delete(e.id);drawH()};
+  const d=mk("div");d.appendChild(mk("span","a",e.op+" ("+e.dim+"D)"+(e.key=="sca"?", k = "+e.k:"")));
+  d.appendChild(mk("small","",e.vecs.map((v,j)=>"V"+(j+1)+" = ("+v.slice(0,e.dim).map(r).join(", ")+")").join("   ")));
+  d.appendChild(mk("small","a","Solved: "+exprOf(e.key,e.use||e.vecs.map((_,i)=>i))));e.ans.forEach(a=>d.appendChild(mk("small","",a)));d.appendChild(mk("small","",e.time));L.append(cb,d);
+  const b=mk("div"),o=mk("button","sm","Open"),x=mk("button","sm","Delete");x.style.marginLeft="6px";
+  o.onclick=()=>{clearTimeout(tm);skip=true;vecs=e.vecs.map(v=>[...v]);use=(e.use||e.vecs.map((_,i)=>i)).slice();$("k").value=e.k;setDim(e.dim);sel(e.key);skip=false;scrollTo({top:0,behavior:"smooth"})};
+  x.onclick=()=>{hist=hist.filter(q=>q.id!=e.id);saveH();drawH()};b.append(o,x);row.append(L,b);h.appendChild(row)})}
+$("hall").onchange=()=>{$("hall").checked?hist.forEach(e=>pick.add(e.id)):pick.clear();drawH()};
+$("hdel").onclick=()=>{hist=hist.filter(e=>!pick.has(e.id));pick.clear();saveH();drawH()};
+drawH();if(document.fonts)document.fonts.ready.then(render);
+drawVecs();setDim(2);sel("add");
+</script></body></html>
