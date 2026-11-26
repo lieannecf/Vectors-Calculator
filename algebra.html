@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vector Operations Calculator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&family=Patrick+Hand&display=swap">
+<style>
+/* ---------- Theme colors ---------- */
+:root {
+  --paper: #eef3fa;
+  --rule: #d5e1f1;
+  --ink: #16233f;
+  --panel: #fff;
+  --line: #b9c9e0;
+  --accent: #1b3f8f;
+  --accent2: #14306e;
+  --muted: #52607a;
+  --hi: #fff3a6;
+  --edge: #c7d5ea;
+  --field: #fff;
+  --red: #c8372d;
+}
+:root:not([data-theme=light]) {
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme=light]) {
+    --paper: #0f1727;
+    --rule: #17233b;
+    --ink: #e6edfb;
+    --panel: #17213a;
+    --line: #34456b;
+    --accent: #6f98ff;
+    --accent2: #8fb1ff;
+    --muted: #9fb0d0;
+    --hi: #4a4313;
+    --edge: #0a1020;
+    --field: #0f1727;
+  }
+}
+
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-padding-top: env(safe-area-inset-top,0px);
+}
+body {
+  margin: 0;
+  color: var(--ink);
+  font: 15.5px/1.6 Lexend,"Segoe UI",'Patrick Hand',Verdana,sans-serif;
+  padding: 14px;
+  padding-top: calc(14px + env(safe-area-inset-top,0px));
+  padding-bottom: calc(14px + env(safe-area-inset-bottom,0px));
+  background-color: var(--paper);
+  background-image: repeating-linear-gradient(transparent 0 31px,var(--rule) 31px 32px);
+}
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ---------- Page layout and history side panel ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: 14px;
+  align-items: start;
+}
+.layout.open {
+  grid-template-columns: minmax(0,1fr) 350px;
+}
+.col {
+  min-width: 0;
+}
+.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bar .tabs {
+  margin: 0;
+}
+.hbtn {
+  padding: 7px 14px;
+  white-space: nowrap;
+}
+.hbtn[aria-expanded=true] {
+  background: var(--accent2);
+  border-color: var(--accent2);
+  color: #fff;
+}
+.side {
+  position: sticky;
+  top: calc(14px + env(safe-area-inset-top,0px));
+  max-height: calc(100vh - 28px);
+  overflow: auto;
+  margin-bottom: 14px;
+}
+.side .he {
+  flex-direction: column;
+  align-items: stretch;
+}
+@media(max-width:960px) {
+  .layout.open {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    position: static;
+    max-height: none;
+  }
+}
+
+/* ---------- Header ---------- */
+header {
+  background: #14306e;
+  background-image: linear-gradient(rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px);
+  background-size: 22px 22px;
+  color: #fff;
+  padding: 20px 22px;
+  border-radius: 4px;
+  border-left: 10px solid var(--red);
+  margin-bottom: 14px;
+  box-shadow: 4px 4px 0 var(--edge);
+}
+h1 {
+  font: 400 2.1rem/1.15 "Patrick Hand",Lexend,sans-serif;
+  margin: 0;
+}
+header p {
+  margin: 4px 0 0;
+  color: #cdd9f2;
+  font-size: .92rem;
+}
+
+/* ---------- Buttons and operation tabs ---------- */
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tabs button {
+  padding: 7px 13px;
+  border: 1.5px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+.tabs button:hover {
+  border-color: var(--accent);
+}
+.tabs button[aria-pressed=true] {
+  background: var(--accent2);
+  border-color: var(--accent2);
+  color: #fff;
+}
+button:focus-visible,input:focus-visible {
+  outline: 3px solid #7da3ff;
+  outline-offset: 2px;
+}
+
+/* ---------- Panels and inputs ---------- */
+.panel {
+  background: var(--panel);
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 4px 4px 0 var(--edge);
+}
+.hint {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+.vrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.vrow b {
+  min-width: 48px;
+}
+input[type=number] {
+  width: 80px;
+  padding: 6px;
+  font: inherit;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  color: var(--ink);
+}
+.sm {
+  padding: 5px 11px;
+  border: 1.5px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+.sm:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sm:disabled {
+  opacity: .4;
+  cursor: default;
+}
+.ctl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin-top: 8px;
+}
+.ctl label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.go {
+  padding: 8px 16px;
+  border: 0;
+  background: var(--accent2);
+  color: #fff;
+}
+.go:hover {
+  filter: brightness(1.2);
+}
+
+/* ---------- Graph and solution text ---------- */
+canvas {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  display: block;
+}
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font: 14.5px/1.7 Consolas,monospace;
+}
+.fin {
+  background: var(--hi);
+  border-left: 5px solid var(--red);
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+h2 {
+  font: 400 1.45rem/1.2 "Patrick Hand",Lexend,sans-serif;
+  margin: 14px 0 6px;
+}
+h2:first-child {
+  margin-top: 0;
+}
+
+/* ---------- History list ---------- */
+.he {
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  justify-content: space-between;
+  align-items: center;
+}
+.he div {
+  min-width: 0;
+}
+.he small {
+  color: var(--muted);
+  display: block;
+}
+.he .a {
+  font-weight: 600;
+}
+.hl {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.he input[type=checkbox],#hall {
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+}
+#hall {
+  margin: 0;
+}
+
+/* ---------- Solve picker ---------- */
+.pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1.5px dashed var(--line);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip[aria-pressed=true] {
+  background: var(--accent2);
+  border-color: var(--accent2);
+  color: #fff;
+}
+.ord {
+  display: inline-block;
+  margin-left: 7px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 10px;
+  background: #fff;
+  color: #14306e;
+  font-size: .78rem;
+  font-weight: 600;
+  text-align: center;
+}
+.expr {
+  margin: 6px 0 0;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.empty {
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+/* ---------- Solution sections ---------- */
+.sec {
+  margin: 12px 0;
+}
+.sec h3 {
+  font: 600 1rem/1.3 Lexend,"Segoe UI",sans-serif;
+  margin: 0 0 4px;
+  color: var(--accent);
+}
+.sec pre {
+  padding: 8px 12px;
+  border-left: 4px solid var(--line);
+  background: rgba(120,150,200,.08);
+}
+#plain {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.8;
+}
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Header -->
+  <header>
+    <h1>Vector Operations Calculator</h1>
+    <p>Add, subtract, scale and measure vectors. Every answer comes with the steps.</p>
+  </header>
+
+  <div class="layout">
+    <div class="col">
+
+      <!-- 2. Operation tabs and History button -->
+      <div class="bar">
+        <div class="tabs" id="tabs" role="group" aria-label="Operation"></div>
+        <button class="sm hbtn" id="htog" aria-expanded="false" aria-controls="histpanel">History</button>
+      </div>
+
+      <!-- 3. Input panel -->
+      <div class="panel">
+        <p class="hint" id="hint"></p>
+        <div class="ctl" style="margin:0 0 10px">
+          <b>Space</b>
+          <label id="l2"><input type="radio" name="d" value="2" checked> 2D</label>
+          <label><input type="radio" name="d" value="3" id="d3"> 3D</label>
+          <label id="kw">Scalar k <input type="number" id="k" step="any" value="2"></label>
+          <label id="lg"><input type="checkbox" id="showg" checked> Show graph</label>
+        </div>
+        <div id="vecs"></div>
+        <button class="sm" id="add">+ Add vector</button>
+        <div class="pick">
+          <b>Solve</b>
+          <span id="chips" class="chips"></span>
+          <button class="sm" id="pall">All</button>
+          <button class="sm" id="prev">Reverse</button>
+          <button class="sm" id="pclr">Clear</button>
+        </div>
+        <p class="hint" id="pickhint" style="margin:6px 0 0">Tap the vectors in the order you want to use them. For example, tap V2 then V1 to solve V2 − V1.</p>
+        <p class="expr" id="expr"></p>
+      </div>
+
+      <!-- 4. Graph panel -->
+      <div class="panel" id="gp">
+        <canvas id="cv" width="900" height="620" aria-label="Graph of the vectors"></canvas>
+        <p class="hint" id="key" style="margin:10px 0 0"></p>
+        <div class="ctl" id="rot">
+          <label>Rotate <input type="range" id="yaw" min="-180" max="180" value="35"></label>
+          <label>Tilt <input type="range" id="pit" min="0" max="85" value="25"></label>
+        </div>
+        <div class="ctl"><button class="go" id="dlp">Download graph (PNG)</button></div>
+      </div>
+
+      <!-- 5. Solution panel -->
+      <div class="panel">
+        <div class="ctl" style="margin:0 0 6px;justify-content:space-between">
+          <h2 style="margin:0">Solution (Step-by-Step)</h2>
+          <span><button class="sm" id="cpy">Copy results</button> <span id="cmsg" role="status"></span></span>
+        </div>
+        <div id="sol"></div>
+        <h2>Answer</h2>
+        <div id="ans"></div>
+        <h2 id="plainh">In Plain Words</h2>
+        <p id="plain"></p>
+      </div>
+
+    </div>
+
+    <!-- History side panel (opened by the History button) -->
+    <aside class="panel side" id="histpanel" aria-label="History" hidden>
+      <div class="ctl" style="margin:0 0 6px;justify-content:space-between">
+        <h2 style="margin:0">History</h2>
+        <span class="ctl" style="margin:0">
+          <label><input type="checkbox" id="hall"> Select all</label>
+          <button class="sm" id="hdel" disabled>Delete</button>
+        </span>
+      </div>
+      <div id="hist"></div>
+    </aside>
+  </div>
+</main>
+
+<script>
+"use strict";
+/* =====================================================================
+   VECTOR OPERATIONS CALCULATOR
+   1 Constants · 2 State · 3 Helpers · 4 Operations · 5 Graph
+   6 Results & actions · 7 Selection & history · 8 Inputs · 9 Start
+
+   Page layout, top to bottom: header · operation tabs · input panel
+   · graph panel · solution panel (+ History side panel).
+   ===================================================================== */
+
+/* ---------- 1. Constants ---------- */
+const COL = ["#d62728","#1f77b4","#2ca02c","#ff7f0e","#9467bd","#8c564b","#e377c2","#17becf","#bcbd22","#7f7f7f"];
+const AXES = ["x", "y", "z"], GREEK = ["α", "β", "γ"], O = [0, 0, 0], MAX_VECS = 10;
+const FONT = "Lexend,'Segoe UI',Verdana,sans-serif", INK = "#16233f", GRID = "#d3e2f3", RED = "#c8372d";
+const MINV = { add: 2, sub: 2, dot: 2, crs: 2, sca: 1, mag: 1, dir: 1 };   /* fewest vectors each operation needs */
+const GRAPH = { add: 1, sub: 1, sca: 1, dir: 1, crs: 1, dot: 0, mag: 0 };   /* which operations can show a graph */
+const SEP = { add: " + ", sub: " − ", dot: " · ", crs: " × " };
+
+/* ---------- 2. State ---------- */
+const isPair = () => app.op == "dot" || app.op == "crs";   /* these two use exactly 2 vectors at a time */
+const app = {
+  op: "add", dim: 2, vecs: [[3, 4, 0], [1, 2, 2]], prevDim: 0, text: "", sol: null,
+  multi: [0, 1],   /* picks for add, subtract, scalar, magnitude, direction */
+  pair: [0, 1],    /* picks for dot and cross (at most 2) */
+  get use() { return isPair() ? this.pair : this.multi; },
+  set use(v) { if (isPair()) this.pair = v; else this.multi = v; }
+};
+const hist = { items: [], picked: new Set(), armed: false, skip: false, timer: 0 };
+
+/* ---------- 3. Helpers ---------- */
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const round = n => Math.round(n * 1e4) / 1e4;
+const deg = x => x * 180 / Math.PI;
+const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+const len = v => Math.hypot(...v);
+const add = (a, b) => a.map((x, i) => x + b[i]);
+const neg = a => a.map(x => -x);
+const clamp = x => Math.max(-1, Math.min(1, x));
+const axes = () => AXES.slice(0, app.dim);
+const fv = v => "(" + v.slice(0, app.dim).map(round).join(", ") + ")";
+const squares = v => v.slice(0, app.dim).map(x => `(${round(x)})²`).join(" + ");
+const parts = (v, j, sep) => v.map(x => round(x[j])).join(sep);
+const scalarK = () => parseFloat($("k").value) || 0;
+const expr = (op, u) => u.length ? u.map(i => "V" + (i + 1)).join(SEP[op] || ", ") : "nothing selected";
+const rootText = n => { n = round(n); const q = Math.sqrt(n); return Number.isInteger(q) ? "" + q : `√${n} ≈ ${round(q)}`; };
+/* vectors picked in the "Solve" row, in the order tapped (z forced to 0 in 2D) */
+const chosen = () => app.use.filter(i => i < app.vecs.length).map(i => app.dim == 2 ? [app.vecs[i][0], app.vecs[i][1], 0] : [...app.vecs[i]]);
+const chosenNames = () => app.use.filter(i => i < app.vecs.length).map(i => "V" + (i + 1));
+
+/* ---------- 4. Operations ----------
+   Every operation builds its solution in the same order:
+   given → formulas → numbered parts (each with labelled steps) → answers → plain words.
+   solve(sol, v, nm): v = chosen vectors, nm = their names. */
+const newSol = () => ({ given: [], formulas: [], parts: [], ans: [], items: [], arcs: [], plain: "" });
+const item = (a, b, c, l, o) => ({ a, b, c, l, ...o });
+const label = (t, p) => t + " = " + fv(p);
+const part = (s, title, lines) => s.parts.push({ title: `Part ${s.parts.length + 1}: ${title}`, lines });
+const givenVectors = (s, v, nm) => v.forEach((x, i) => s.given.push(`${nm[i]} = ${fv(x)}`));
+const pattern = op => "(" + axes().map(a => `${a}₁ ${op} ${a}₂`).join(", ") + ")";
+const R2 = n => Math.round(n * 100) / 100;
+const isWhole = n => Math.abs(n - Math.round(n)) < 1e-9;
+const rootR = n => { n = round(n); const q = Math.sqrt(n); return isWhole(q) ? "" + Math.round(q) : `√${n} ≈ ${R2(q)}`; };
+const lenAns = (name, v) => `Length ‖${name}‖ = ${rootR(dot(v, v))}`;
+const FORMULA_LEN = () => `Length (Magnitude): ‖V‖ = √(${axes().map(a => a + "²").join(" + ")})`;
+
+/* steps that find the length of one vector, shared by several operations */
+function lengthLines(name, v) {
+  const ax = axes(), n = dot(v, v), q = Math.sqrt(n), sq = ax.map((a, j) => round(v[j] * v[j]));
+  const lines = [
+    "Square each part: " + ax.map((a, j) => `(${round(v[j])})² = ${sq[j]}`).join(",  "),
+    "Add the squares: " + sq.join(" + ") + " = " + round(n),
+    `Take the square root: ‖${name}‖ = √${round(n)} = ${round(q)}`];
+  if (!isWhole(q)) lines.push(`Round to 2 decimal places: ‖${name}‖ ≈ ${R2(q)}`);
+  return lines;
+}
+
+/* everyday words for the plain-words text */
+const SIDE = { x: ["right", "left"], y: ["up", "down"], z: ["forward", "back"] };
+const LINE = { x: "Left and right", y: "Up and down", z: "Forward and back" };
+const stepWord = n => Math.abs(n) == 1 ? "step" : "steps";
+const walkOne = (a, n) => `${round(Math.abs(n))} ${stepWord(n)} ${SIDE[a][n < 0 ? 1 : 0]}`;
+const walk = v => axes().map((a, j) => v[j] ? walkOne(a, v[j]) : null).filter(Boolean).join(" and ") || "no steps at all";
+const tally = (v, sep, res) => axes().map((a, j) => `${LINE[a]}: ${parts(v, j, sep)} = ${round(res[j])}`).join(". ");
+const joinNames = a => a.length < 3 ? a.join(" and ") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+const lean = d => Math.abs(d) < 1e-9 ? "That is zero, which means the two arrows meet in a perfect corner, like the corner of a book."
+  : d > 0 ? "A positive answer means the two arrows lean the same way." : "A negative answer means the two arrows lean away from each other.";
+
+const OPS = {
+  add: {
+    name: "Addition", key: "The vectors are drawn tip to tail: each one starts where the last one ended. The dotted black line from the origin to the end is the sum.",
+    hint: "Adds all vectors: V₁ + V₂ + … (drawn tip to tail; the dotted line from the start to the end is the sum). Uses all selected vectors, with no limit.",
+    solve(s, v, nm) {
+      const ax = axes(), total = v.reduce(add);
+      givenVectors(s, v, nm);
+      s.formulas.push(`Vector Addition: Sum = ${pattern("+")}  (add the matching parts of every vector)`);
+      part(s, "Find the Sum", [...ax.map((a, j) => `Add the ${a} parts: ${parts(v, j, " + ")} = ${round(total[j])}`), `Write the Sum: Sum = ${fv(total)}`]);
+      /* tip to tail: the first vector starts at the origin, each next one starts where the last ended */
+      let at = O;
+      v.forEach((x, i) => { const nx = add(at, x); s.items.push(item(at, nx, COL[i % 10], label(nm[i], x), { mid: 1 })); at = nx; });
+      s.items.push(item(O, total, "#111", "Sum = " + fv(total), { w: 3, d: 2 }));   /* dotted line from the start to the end */
+      s.ans.push("Sum = " + fv(total));
+      s.plain = `Think of each arrow as a short walk. ${v.map((x, i) => `${nm[i]} is a walk of ${walk(x)}.`).join(" ")} Do the walks one after another, and the steps in each direction simply pile up. ${tally(v, " + ", total)}. `
+        + `So you finish ${walk(total)} from where you started. That finishing spot, ${fv(total)}, is the Sum. `
+        + `On the graph, the walks are drawn one after another (tip to tail), starting at the origin ${fv(O)}. The dotted black line from the origin to the finish is the Sum.`;
+    }
+  },
+  sub: {
+    name: "Subtraction", key: "The first vector starts at the origin. Each vector taken away is turned around (−V) and drawn from the end of the one before. The dotted black line from the origin to the end is the result.",
+    hint: "Subtracts the later vectors from the first: A − B − C … Uses all selected vectors, with no limit.",
+    solve(s, v, nm) {
+      const ax = axes(), res = v.slice(1).reduce((t, x) => add(t, neg(x)), v[0]);
+      givenVectors(s, v, nm);
+      s.formulas.push(`Vector Subtraction: Result = ${pattern("−")}  (take the later vectors away from the first, part by part)`);
+      if (v.length == 1) s.parts.push({ title: "Pick a second vector", lines: ["Select a second vector to subtract."] });
+      part(s, "Find the Result", [...ax.map((a, j) => `Subtract the ${a} parts: ${parts(v, j, " − ")} = ${round(res[j])}`), `Write the Result: Result = ${fv(res)}`]);
+      /* tip to tail: the first vector, then each later vector turned around (negated) and placed at the end of the one before */
+      s.items.push(item(O, v[0], COL[0], label(nm[0], v[0]), { mid: 1 }));
+      let at = v[0];
+      v.slice(1).forEach((x, i) => { const f = neg(x), nx = add(at, f); s.items.push(item(at, nx, COL[(i + 1) % 10], label("−" + nm[i + 1], f), { mid: 1 })); at = nx; });
+      s.items.push(item(O, res, "#111", "Result = " + fv(res), { w: 3, d: 2 }));   /* dotted line from the start to the end */
+      s.ans.push("Result = " + fv(res));
+      s.plain = `Subtracting is like undoing a walk. Start with ${nm[0]}, a walk of ${walk(v[0])}. `
+        + (v.length > 1 ? `Now take away ${joinNames(nm.slice(1))} (${v.slice(1).map(walk).join("; ")}), which is the same as walking ${v.length > 2 ? "them" : "it"} backwards. ` : "")
+        + `In each direction you take the steps away. ${tally(v, " − ", res)}. So you finish ${walk(res)} from where you started. That spot, ${fv(res)}, is the Result. `
+        + `On the graph, ${nm[0]} starts at the origin ${fv(O)}. Each vector you take away is drawn turned around, starting where the one before ended. The dotted black line from the origin to the finish is the Result.`;
+    }
+  },
+  sca: {
+    name: "Scalar multiplication", key: "The arrows are the scaled vectors.",
+    hint: "Scalar multiplication: multiplies every part of each vector by k. Each selected vector is solved separately.",
+    solve(s, v, nm) {
+      const ax = axes(), k = scalarK(), a = Math.abs(k), sc = v.map(x => x.map(y => y * k));
+      givenVectors(s, v, nm); s.given.push(`k = ${round(k)}`);
+      s.formulas.push(`Scalar Multiplication: k·V = (${ax.map(t => "k × " + t).join(", ")})  (multiply every part by k)`);
+      part(s, `Multiply each vector by k = ${round(k)}`, v.flatMap((x, i) => [`${nm[i]}:`,
+        ...ax.map((t, j) => `  New ${t} = k × ${t} = ${round(k)} × ${round(x[j])} = ${round(sc[i][j])}`),
+        `  Write the result: ${round(k)}·${nm[i]} = ${fv(sc[i])}`]));
+      v.forEach((x, i) => {
+        s.items.push(item(O, x, COL[i % 10], label(nm[i], x), { d: 1, w: 2 }), item(O, sc[i], COL[i % 10], label(round(k) + "·" + nm[i], sc[i]), { w: 4 }));
+        s.ans.push(`${round(k)} × ${nm[i]} = ${fv(sc[i])}`);
+      });
+      const size = a > 1 ? `${round(a)} times as long` : a < 1 ? `only ${round(a)} times as long (it shrinks)` : "the same length";
+      s.plain = k == 0 ? `Multiplying by 0 means taking no steps at all, so every arrow shrinks to a dot at the start. ${v.map((x, i) => `${nm[i]} was ${walk(x)}; now it is ${walk(sc[i])}.`).join(" ")}`
+        : `Multiplying by ${round(k)} changes how long each walk is${k < 0 ? ", and it also turns each walk around to face the opposite way" : ""}. `
+          + v.map((x, i) => `${nm[i]} was ${walk(x)}. Now it is ${walk(sc[i])}, which is ${size}.`).join(" ");
+    }
+  },
+  dot: {
+    name: "Dot product", key: "Both vectors start at the origin.",
+    hint: "Dot product A · B of two vectors – the result is a number. Uses 2 vectors at a time: pick which two.",
+    solve(s, v, nm) {
+      const ax = axes();
+      givenVectors(s, v, nm);
+      v.forEach((x, i) => s.items.push(item(O, x, COL[i % 10], label(nm[i], x))));
+      if (v.length < 2) { s.parts.push({ title: "Pick a second vector", lines: ["Select two vectors to take a dot product."] }); return; }
+      const [a, b] = v, [A, B] = nm, d = dot(a, b), prods = ax.map((t, q) => round(a[q] * b[q]));
+      s.formulas.push(`Dot Product: ${A} · ${B} = ${ax.map(t => `(${t}₁ × ${t}₂)`).join(" + ")}  (1 = ${A}, 2 = ${B}; the answer is one number)`);
+      part(s, `Find the Dot Product ${A} · ${B}`, [
+        "Multiply the matching parts: " + ax.map((t, q) => `(${round(a[q])})(${round(b[q])}) = ${prods[q]}`).join(",  "),
+        "Add the results: " + prods.join(" + ") + " = " + round(d)]);
+      s.ans.push(`${A} · ${B} = ${round(d)}`);
+      s.plain = `The dot product tells you whether two arrows point the same way. ${A} is a walk of ${walk(a)} and ${B} is a walk of ${walk(b)}. `
+        + `Multiply the matching steps and add them up: ${prods.join(" + ")} = ${round(d)}. ${lean(d)} On the graph, both arrows start at the origin ${fv(O)}.`;
+    }
+  },
+  crs: {
+    name: "Cross product", key: "The thick black arrow is the answer. It is perpendicular (90°) to both vectors, by the right-hand rule. Use Rotate and Tilt to turn the graph.",
+    hint: "Cross product A × B of two vectors (3D only) – the result is perpendicular to both. Uses 2 vectors at a time: pick which two.",
+    solve(s, v, nm) {
+      givenVectors(s, v, nm);
+      v.forEach((x, i) => s.items.push(item(O, x, COL[i % 10], label(nm[i], x))));
+      if (v.length < 2) { s.parts.push({ title: "Pick a second vector", lines: ["Select two vectors to take a cross product."] }); return; }
+      const [a, b] = v, [A, B] = nm, c = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+      s.formulas.push(`Cross Product: ${A} × ${B} = (y₁z₂ − z₁y₂,  z₁x₂ − x₁z₂,  x₁y₂ − y₁x₂)  (1 = ${A}, 2 = ${B})`);
+      part(s, `Find the Cross Product ${A} × ${B}`, [
+        `Find x: (y₁)(z₂) − (z₁)(y₂) = (${round(a[1])})(${round(b[2])}) − (${round(a[2])})(${round(b[1])}) = ${round(c[0])}`,
+        `Find y: (z₁)(x₂) − (x₁)(z₂) = (${round(a[2])})(${round(b[0])}) − (${round(a[0])})(${round(b[2])}) = ${round(c[1])}`,
+        `Find z: (x₁)(y₂) − (y₁)(x₂) = (${round(a[0])})(${round(b[1])}) − (${round(a[1])})(${round(b[0])}) = ${round(c[2])}`,
+        `Write the Result: Result = ${fv(c)}`]);
+      s.items.push(item(O, c, "#111", "Result = " + fv(c), { w: 3 }));
+      s.ans.push("Result = " + fv(c));
+      s.plain = `Imagine ${A} and ${B} lying flat on a table. The cross product is a new arrow that sticks straight out of the table, like a flagpole standing up from the ground. `
+        + `${A} is a walk of ${walk(a)} and ${B} is a walk of ${walk(b)}. Doing the cross-product steps with those numbers gives ${fv(c)}. `
+        + `This new arrow makes a perfect corner with both ${A} and ${B}. Swap the order (${B} × ${A}) and the flagpole points the opposite way.`;
+    }
+  },
+  mag: {
+    name: "Magnitude", key: "Each label shows the length of its vector.",
+    hint: "The length of a vector, written ‖V‖ = √(x² + y² + z²). Each selected vector is solved separately.",
+    solve(s, v, nm) {
+      givenVectors(s, v, nm);
+      s.formulas.push(FORMULA_LEN());
+      const notes = v.map((x, i) => {
+        const A = nm[i], n = dot(x, x), sq = axes().map((a, j) => round(x[j] * x[j]));
+        part(s, `Find the Length of ${A}`, lengthLines(A, x));
+        s.ans.push(lenAns(A, x));
+        s.items.push(item(O, x, COL[i % 10], `${A} = ${fv(x)}, ‖${A}‖ = ${round(len(x))}`));
+        return `${A} is a walk of ${walk(x)}. Those two walks make the two short sides of a triangle with a square corner, and the arrow is the long slanted side. Square the short sides (${sq.join(" and ")}), add them (${round(n)}), then take the square root to get ${R2(Math.sqrt(n))}.`;
+      });
+      s.plain = "The length of an arrow is how far its tip is from the start, like a piece of string pulled tight. " + notes.join(" ") + " So each answer is simply how many steps long the string is.";
+    }
+  },
+  dir: {
+    name: "Direction", key: "The arrow is the vector, starting at the origin. The arc shows the direction angle.",
+    hint: "Direction angle of a vector (the arc on the graph shows the angle). Each selected vector is solved separately.",
+    solve(s, v, nm) {
+      const ax = axes(), notes = [];
+      givenVectors(s, v, nm);
+      s.formulas.push(app.dim == 2 ? "Direction Angle: tan θ = y ÷ x, so θ = tan⁻¹(y ÷ x), measured anticlockwise from the +x axis"
+        : "Angle with an axis: cos α = x ÷ ‖V‖,  cos β = y ÷ ‖V‖,  cos γ = z ÷ ‖V‖,  where ‖V‖ = √(x² + y² + z²)");
+      v.forEach((x, i) => {
+        const m = len(x), A = nm[i];
+        if (!m) { s.parts.push({ title: `Direction of ${A}`, lines: ["The direction is not defined for the zero vector."] }); notes.push(`${A} is the zero vector. It does not point anywhere, so it has no direction.`); return; }
+        s.items.push(item(O, x, COL[i % 10], label(A, x), { w: 3 }));
+        if (app.dim == 2) {
+          let t = deg(Math.atan2(x[1], x[0]));
+          if (t < 0) t += 360;
+          if (t > 360 - 1e-9) t = 0;
+          const X = x[0], Y = x[1], lines = [];
+          if (X) {
+            const raw = deg(Math.atan(Y / X));
+            lines.push(`Find tan θ: y ÷ x = ${round(Y)} ÷ ${round(X)} = ${round(Y / X)}`,
+              `Take the inverse: θ = tan⁻¹(${round(Y / X)}) = ${R2(raw)}°`);
+            const q = X > 0 && Y > 0 ? "Quadrant I, so no change is needed" : X < 0 && Y > 0 ? "Quadrant II, so add 180°" : X < 0 && Y < 0 ? "Quadrant III, so add 180°" : X > 0 && Y < 0 ? "Quadrant IV, so add 360° to get a positive angle" : "on the x-axis, so use 0° or 180°";
+            lines.push(`Check the quadrant: ${A} is in ${q}`);
+          } else lines.push(`Find tan θ: y ÷ x = ${round(Y)} ÷ 0 = undefined (${A} lies on the y-axis)`, `Use the axis directly: ${Y > 0 ? "straight up is 90°" : "straight down is 270°"}`);
+          lines.push(`Write the angle: θ = ${R2(t)}° from the +x axis, turning anticlockwise`);
+          part(s, `Find the Direction Angle of ${A}`, lines);
+          s.ans.push(`Direction of ${A} = ${R2(t)}° from the +x axis (anticlockwise)`);
+          s.arcs.push({ ang: t * Math.PI / 180, t: "θ = " + R2(t) + "°", c: COL[i % 10], k: i });
+          notes.push(`${A} is a walk of ${walk(x)}. Imagine standing at the origin ${fv(O)} and facing right (along the +x axis). To face the same way as ${A}, you turn ${R2(t)}° anticlockwise${t == 0 ? ", which means no turn at all" : t == 90 ? ", which is a quarter turn" : t == 180 ? ", which is a half turn" : t == 270 ? ", which is three quarters of a full turn" : ""}.`);
+        } else {
+          const u = x.map(y => y / m), an = u.map(y => R2(deg(Math.acos(clamp(y)))));
+          part(s, `Find the Angles of ${A} with the axes`, [`Find the length: ‖${A}‖ = √(${squares(x)}) = ${round(m)}`,
+            ...[0, 1, 2].map(q => `Angle with the ${AXES[q]}-axis: cos ${GREEK[q]} = ${round(x[q])} ÷ ${round(m)} = ${round(u[q])}, so ${GREEK[q]} = ${an[q]}°`)]);
+          [0, 1, 2].forEach(q => { const e = [0, 0, 0]; e[q] = 1; s.arcs.push({ a: e, b: u, t: GREEK[q] + " = " + an[q] + "°", c: COL[i % 10], k: q }); });
+          s.ans.push(`Direction of ${A}: angles with the x, y, z axes = ${an.map(a => a + "°").join(", ")}`);
+          notes.push(`${A} is a walk of ${walk(x)}. Its direction is told by how far the arrow leans away from each axis: ${an[0]}° from the x-axis, ${an[1]}° from the y-axis and ${an[2]}° from the z-axis. A small angle means the arrow points almost along that axis.`);
+        }
+      });
+      s.plain = notes.join(" ") + (notes.length ? (app.dim == 2 ? " On the graph, the curved arc θ starts on the +x axis and sweeps anticlockwise to the arrow, so it shows exactly this turn." : " On the graph, the arcs α, β and γ show these three angles.") : "");
+    }
+  }
+};
+
+function solve() {
+  const v = chosen(), s = newSol();
+  if (!v.length) { s.parts.push({ title: "Getting started", lines: ["Choose at least one vector to solve (tap V1, V2 … above)."] }); return s; }
+  OPS[app.op].solve(s, v, chosenNames());
+  return s;
+}
+
+/* ---------- 5. Graph ---------- */
+const canvas = $("cv"), ctx = canvas.getContext("2d");
+const gfx = {
+  /* dash: 0 = solid, 1 = dashed, 2 = dotted */
+  line(p, q, col, w, dash) {
+    ctx.beginPath();
+    ctx.setLineDash(dash == 2 ? [2, 7] : dash ? [8, 6] : []);
+    ctx.lineCap = dash == 2 ? "round" : "butt";
+    ctx.strokeStyle = col; ctx.lineWidth = w;
+    ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineCap = "butt";
+  },
+  head(p, q, col, sz) {
+    const a = Math.atan2(q[1] - p[1], q[0] - p[0]);
+    ctx.beginPath(); ctx.fillStyle = col; ctx.moveTo(q[0], q[1]);
+    ctx.lineTo(q[0] - sz * Math.cos(a - .38), q[1] - sz * Math.sin(a - .38));
+    ctx.lineTo(q[0] - sz * Math.cos(a + .38), q[1] - sz * Math.sin(a + .38)); ctx.closePath(); ctx.fill();
+  },
+  text(t, x, y, col, font, align) {
+    ctx.font = font; ctx.textAlign = align || "left"; ctx.lineWidth = 4; ctx.strokeStyle = "#fff";
+    ctx.strokeText(t, x, y); ctx.fillStyle = col; ctx.fillText(t, x, y); ctx.textAlign = "left";
+  },
+  /* label in a white rounded box, nudged along (dx, dy) until it overlaps nothing */
+  pill(t, x, y, col, dx, dy, font, placed) {
+    const W = canvas.width, H = canvas.height;
+    ctx.font = font || "600 13px " + FONT;
+    const tw = ctx.measureText(t).width + 16, th = 24;
+    let X, Y;
+    for (let k = 0; k < 8; k++) {
+      X = Math.min(W - tw / 2 - 4, Math.max(tw / 2 + 4, x + dx * k * 26));
+      Y = Math.min(H - th / 2 - 4, Math.max(th / 2 + 4, y + dy * k * 26));
+      if (!placed.some(q => Math.abs(q[0] - X) < (q[2] + tw) / 2 && Math.abs(q[1] - Y) < (q[3] + th) / 2)) break;
+    }
+    placed.push([X, Y, tw, th]);
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(X - tw / 2, Y - th / 2, tw, th, 7) : ctx.rect(X - tw / 2, Y - th / 2, tw, th);
+    ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = col; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(t, X, Y + 1);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+};
+
+/* 2D view: fits the arrows on the canvas, draws grid + numbered axes */
+function view2D(pts, W, H) {
+  let x0 = 0, x1 = 0, y0 = 0, y1 = 0;
+  pts.forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
+  const sx = Math.max(x1 - x0, 3), sy = Math.max(y1 - y0, 3), mx = 110, my = 80;
+  const S = Math.min((W - 2 * mx) / sx, (H - 2 * my) / sy);
+  const ox = mx + (W - 2 * mx - sx * S) / 2 - x0 * S, oy = H - my - (H - 2 * my - sy * S) / 2 + y0 * S;
+  const raw = Math.max(sx, sy) / 10, e = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map(m => m * e).find(s => s >= raw - 1e-9);
+  const P = p => [ox + p[0] * S, oy - p[1] * S];
+  return {
+    P, arcRadius: k => (48 + 24 * (k % 4)) / S,
+    base() {
+      const { line, head, text } = gfx, TF = "600 14px " + FONT;
+      const ga = Math.ceil(-ox / S / step) * step, gb = Math.floor((W - ox) / S / step) * step;
+      const gc = Math.ceil((oy - H) / S / step) * step, gd = Math.floor(oy / S / step) * step;
+      for (let g = ga; g <= gb + 1e-9; g += step) line([ox + g * S, 0], [ox + g * S, H], GRID, 1);
+      for (let g = gc; g <= gd + 1e-9; g += step) line([0, oy - g * S], [W, oy - g * S], GRID, 1);
+      line([0, oy], [W - 6, oy], INK, 2); line([ox, H], [ox, 6], INK, 2);
+      head([0, oy], [W - 2, oy], INK, 12); head([ox, H], [ox, 2], INK, 12);
+      text("x", W - 18, oy - 12, INK, "bold 17px " + FONT); text("y", ox + 12, 20, INK, "bold 17px " + FONT);
+      for (let g = ga; g <= gb + 1e-9; g += step) { const X = ox + g * S; line([X, oy - 5], [X, oy + 5], INK, 2); if (Math.abs(g) > 1e-9) text("" + round(g), X, oy + 25, INK, TF, "center"); }
+      for (let g = gc; g <= gd + 1e-9; g += step) { const Y = oy - g * S; line([ox - 5, Y], [ox + 5, Y], INK, 2); if (Math.abs(g) > 1e-9) text("" + round(g), ox - 12, Y + 5, INK, TF, "right"); }
+      text("0", ox - 12, oy + 25, INK, TF, "right");
+    }
+  };
+}
+
+/* 3D view: rotatable (yaw / tilt sliders) with numbered x, y, z axes */
+function view3D(pts, W, H) {
+  let M = 1;
+  pts.forEach(p => p.forEach(x => M = Math.max(M, Math.abs(x))));
+  M *= 1.15;
+  const yaw = $("yaw").value * Math.PI / 180, pit = $("pit").value * Math.PI / 180;
+  const flat = p => {   /* rotate, then tilt: [sideways, up] before scaling */
+    const x1 = p[0] * Math.cos(yaw) - p[1] * Math.sin(yaw), y1 = p[0] * Math.sin(yaw) + p[1] * Math.cos(yaw);
+    return [x1, p[2] * Math.cos(pit) + y1 * Math.sin(pit)];
+  };
+  /* fit the arrows, the axes and the floor grid into the canvas for ANY rotation */
+  const probe = [...pts, [M, 0, 0], [-M, 0, 0], [0, M, 0], [0, -M, 0], [0, 0, M], [0, 0, -M], [M, M, 0], [M, -M, 0], [-M, M, 0], [-M, -M, 0]].map(flat);
+  const xs = probe.map(q => q[0]), ys = probe.map(q => q[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const S = Math.min((W - 190) / ((x1 - x0) || 1), (H - 150) / ((y1 - y0) || 1));
+  const P = p => { const q = flat(p); return [W / 2 + (q[0] - (x0 + x1) / 2) * S, H / 2 - (q[1] - (y0 + y1) / 2) * S]; };
+  const e = Math.pow(10, Math.floor(Math.log10(M / 4))), step = [1, 2, 5, 10].map(m => m * e).find(s => M / s <= 6) || e * 10;
+  const R = Math.floor(M / step) * step;
+  return {
+    P, arcRadius: k => M * (.28 + .08 * (k % 4)),
+    base() {
+      const { line, head, text } = gfx, L = (a, b, col, w) => line(P(a), P(b), col, w);
+      for (let g = -R; g <= R + 1e-9; g += step) { L([g, -M, 0], [g, M, 0], GRID, 1); L([-M, g, 0], [M, g, 0], GRID, 1); }
+      [["x", [M, 0, 0]], ["y", [0, M, 0]], ["z", [0, 0, M]]].forEach(([n, p]) => {
+        L(neg(p), p, INK, 2); head(P(neg(p).map(x => x * .9)), P(p), INK, 12);
+        const q = P(p); text(n, q[0] + 8, q[1] - 8, INK, "bold 17px " + FONT);
+      });
+      for (let g = -R; g <= R + 1e-9; g += step) {
+        if (Math.abs(g) < 1e-9) continue;
+        [[g, 0, 0], [0, g, 0], [0, 0, g]].forEach(p => { const q = P(p); text("" + round(g), q[0] + 6, q[1] + 14, INK, "600 13px " + FONT); });
+      }
+    }
+  };
+}
+
+function drawGraph(sol) {
+  const W = canvas.width, H = canvas.height, pts = sol.items.flatMap(t => [t.a, t.b]);
+  const view = app.dim == 2 ? view2D(pts, W, H) : view3D(pts, W, H), P = view.P, placed = [];
+  ctx.clearRect(0, 0, W, H); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+  view.base();
+
+  /* arrows */
+  sol.items.forEach(t => {
+    const p = P(t.a), q = P(t.b);
+    gfx.line(p, q, t.c, t.w || 3, t.d);
+    if (Math.hypot(q[0] - p[0], q[1] - p[1]) > 8) gfx.head(p, q, t.c, t.h ? 12 : 15);
+    if (!t.h) { ctx.beginPath(); ctx.fillStyle = t.c; ctx.arc(q[0], q[1], 4.5, 0, 7); ctx.fill(); }
+  });
+
+  /* angle arcs: spherical interpolation between two directions */
+  const origin = P(O);
+  sol.arcs.forEach(A => {
+    const rad = view.arcRadius(A.k), path = [];
+    if (A.ang != null) {   /* 2D: anticlockwise from the +x axis up to the vector */
+      if (A.ang < .02) return;
+      for (let n = 0; n <= 24; n++) { const th = A.ang * n / 24; path.push([rad * Math.cos(th), rad * Math.sin(th), 0]); }
+    } else {               /* 3D: spherical interpolation between two directions */
+      const ua = A.a.map(x => x / len(A.a)), ub = A.b.map(x => x / len(A.b)), phi = Math.acos(clamp(dot(ua, ub)));
+      if (phi < .02 || phi > Math.PI - .02) return;
+      for (let n = 0; n <= 24; n++) {
+        const t = n / 24, w1 = Math.sin((1 - t) * phi) / Math.sin(phi), w2 = Math.sin(t * phi) / Math.sin(phi);
+        path.push(ua.map((x, q) => rad * (w1 * x + w2 * ub[q])));
+      }
+    }
+    ctx.beginPath();
+    path.forEach((p, i) => { const q = P(p); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); });
+    ctx.strokeStyle = A.c; ctx.lineWidth = 3; ctx.stroke();
+    const m = P(path[12]), ux = m[0] - origin[0], uy = m[1] - origin[1], l = Math.hypot(ux, uy) || 1;
+    A.anchor = [m, ux / l, uy / l];
+  });
+  sol.arcs.forEach(A => { if (A.anchor) gfx.pill(A.t, A.anchor[0][0] + A.anchor[1] * 20, A.anchor[0][1] + A.anchor[2] * 20, A.c, A.anchor[1], A.anchor[2], null, placed); });
+
+  /* arrow labels: beside the middle of tip-to-tail arrows, otherwise just past the tip and away from the centre */
+  const proj = pts.map(P), cx = proj.reduce((s, q) => s + q[0], 0) / proj.length, cy = proj.reduce((s, q) => s + q[1], 0) / proj.length;
+  sol.items.forEach(t => {
+    if (!t.l) return;
+    const p = P(t.a), q = P(t.b);
+    if (t.mid) {
+      const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1;
+      let nx = -dy / l, ny = dx / l;
+      if (Math.hypot(mx + nx - cx, my + ny - cy) < Math.hypot(mx - nx - cx, my - ny - cy)) { nx = -nx; ny = -ny; }
+      gfx.pill(t.l, mx + nx * 24, my + ny * 24, t.c, nx, ny, null, placed);
+      return;
+    }
+    let ux = q[0] - cx, uy = q[1] - cy, m = Math.hypot(ux, uy);
+    if (m < 1) { ux = 1; uy = -1; m = 1.41; }
+    gfx.pill(t.l, q[0] + ux / m * 30, q[1] + uy / m * 30, t.c, ux / m, uy / m, null, placed);
+  });
+}
+
+/* ---------- 6. Results & actions ---------- */
+const givenLines = () => app.vecs.map((v, i) => `V${i + 1} = ${fv(v)}`)
+  .concat(["Solving: " + expr(app.op, app.use)], app.op == "sca" ? ["k = " + round(scalarK())] : []);
+
+/* the solution as titled blocks: Given, Formulas used, then Part 1, Part 2 … with labelled steps */
+function solutionBlocks(sol) {
+  const blocks = [];
+  if (sol.given.length) blocks.push({ title: "Given", lines: sol.given });
+  if (sol.formulas.length) blocks.push({ title: "Formulas used", lines: sol.formulas });
+  sol.parts.forEach((p, pi) => {
+    let n = 0;
+    blocks.push({ title: p.title, lines: p.lines.map(l => /^\s/.test(l) || /:$/.test(l) ? l : `Step ${pi + 1}.${++n}  ${l}`) });
+  });
+  return blocks;
+}
+
+function render() {
+  const sol = solve();
+  app.sol = sol;
+  queueSave();
+  const blocks = solutionBlocks(sol), box = $("sol");
+  box.textContent = "";
+  blocks.forEach(b => { const d = el("div", "sec"); d.appendChild(el("h3", "", b.title)); d.appendChild(el("pre", "", b.lines.join("\n"))); box.appendChild(d); });
+  const ans = $("ans");
+  ans.textContent = "";
+  sol.ans.forEach(t => ans.appendChild(el("div", "fin", t)));
+  if (!sol.ans.length) ans.textContent = "Choose the vectors to use above (this operation needs at least two).";
+  $("key").textContent = OPS[app.op].key;
+  $("plain").textContent = sol.plain; $("plain").hidden = $("plainh").hidden = !sol.plain;
+  app.text = `${OPS[app.op].name} (${app.dim}D)\n\nSOLUTION (Step-by-Step)\n` + blocks.map(b => `\n${b.title}:\n${b.lines.join("\n")}`).join("\n")
+    + `\n\nANSWER\n${sol.ans.join("\n")}${sol.plain ? `\n\nIN PLAIN WORDS\n${sol.plain}` : ""}\n`;
+  const show = $("showg").checked && GRAPH[app.op];
+  $("gp").style.display = show ? "" : "none";
+  if (show) drawGraph(sol);
+}
+
+/* the save prompt exists only inside Claude pages; everywhere else we fall back to a normal download */
+async function getDownloads() {
+  try { return window.claude && typeof window.claude.use === "function" ? await window.claude.use("downloads") : null; }
+  catch (e) { return null; }
+}
+async function saveBlob(blob, name) {
+  const d = await getDownloads();
+  if (d) { try { await d.save({ filename: name, data: blob }); } catch (e) {} return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+}
+
+/* PNG = graph + the given vectors only (no answer) */
+function downloadGraph() {
+  const W = canvas.width, H = canvas.height, PAD = 18, LH = 24;
+  const rows = [{ t: `${OPS[app.op].name} (${app.dim}D) - given vectors`, bold: 1 }, ...givenLines().map(t => ({ t }))];
+  const out = document.createElement("canvas");
+  out.width = W; out.height = H + PAD * 2 + rows.length * LH;
+  const c = out.getContext("2d");
+  c.fillStyle = "#fff"; c.fillRect(0, 0, W, out.height); c.drawImage(canvas, 0, 0);
+  c.strokeStyle = "#b9c9e0"; c.lineWidth = 2; c.beginPath(); c.moveTo(0, H + 1); c.lineTo(W, H + 1); c.stroke();
+  rows.forEach((r, i) => { c.fillStyle = INK; c.font = (r.bold ? "bold " : "") + "15px Consolas, 'Courier New', monospace"; c.fillText(r.t, PAD, H + PAD + i * LH + 16); });
+  out.toBlob(b => saveBlob(b, "vector-graph.png"), "image/png");
+}
+
+async function copyResults() {
+  let ok = false;
+  try { await navigator.clipboard.writeText(app.text); ok = true; }
+  catch (e) {
+    const t = document.createElement("textarea");
+    t.value = app.text; document.body.appendChild(t); t.select();
+    try { ok = document.execCommand("copy"); } catch (e2) {}
+    t.remove();
+  }
+  flash(ok ? "Copied!" : "Could not copy. Select the text and copy it manually.", 2500);
+}
+function flash(msg, ms) { $("cmsg").textContent = msg; setTimeout(() => $("cmsg").textContent = "", ms); }
+
+/* ---------- 7. Selection ("Solve" row) & history ---------- */
+/* tap a vector to add / remove it; for dot and cross a third tap replaces the oldest pick */
+function togglePick(i) {
+  const pos = app.use.indexOf(i);
+  if (pos >= 0) app.use.splice(pos, 1);
+  else { app.use.push(i); if (isPair() && app.use.length > 2) app.use.shift(); }
+  drawChips(); render();
+}
+
+function drawChips() {
+  const box = $("chips");
+  box.textContent = "";
+  app.vecs.forEach((v, i) => {
+    const b = el("button", "sm chip", "V" + (i + 1)), pos = app.use.indexOf(i);
+    b.style.borderLeft = "6px solid " + COL[i % 10];
+    b.setAttribute("aria-pressed", pos >= 0);
+    if (pos >= 0) b.appendChild(el("span", "ord", pos + 1));
+    b.onclick = () => togglePick(i);
+    box.appendChild(b);
+  });
+  $("expr").textContent = "Solving: " + expr(app.op, app.use);
+  $("pickhint").textContent = isPair()
+    ? "This operation uses 2 vectors at a time. Tap the two you want; tapping a third replaces your oldest pick."
+    : "Tap the vectors in the order you want to use them. For example, tap V2 then V1 to solve V2 − V1.";
+}
+
+const saveHistory = () => { try { localStorage.setItem("vec-hist", JSON.stringify(hist.items)); } catch (e) {} };
+const historyKey = (op, dim, k, vecs, use) => { const U = use || vecs.map((_, i) => i); return JSON.stringify([op, dim, op == "sca" ? k : 0, U, U.map(i => vecs[i] && vecs[i].slice(0, dim))]); };
+
+function commitHistory() {
+  if (!app.sol.ans.length) return;
+  const k = round(scalarK());
+  if (hist.items.some(e => historyKey(e.key, e.dim, e.k, e.vecs, e.use) == historyKey(app.op, app.dim, k, app.vecs, app.use))) return;
+  hist.items.unshift({ id: "h" + Date.now() + Math.random().toString(36).slice(2, 6), key: app.op, op: OPS[app.op].name, dim: app.dim, k,
+    use: [...app.use], vecs: app.vecs.map(v => [...v]), ans: [...app.sol.ans], time: new Date().toLocaleString() });
+  hist.items = hist.items.slice(0, 50);
+  saveHistory(); drawHistory(); flash("Saved to history.", 1800);
+}
+/* saves automatically once the person has interacted and paused for a moment */
+function queueSave() { if (!hist.armed || hist.skip) return; clearTimeout(hist.timer); hist.timer = setTimeout(commitHistory, 1200); }
+
+function openHistory(e) {
+  clearTimeout(hist.timer); hist.skip = true;
+  app.op = e.key;
+  app.vecs = e.vecs.map(v => [...v]); app.use = (e.use || e.vecs.map((_, i) => i)).slice(0, isPair() ? 2 : MAX_VECS);
+  $("k").value = e.k; setDimension(e.dim); selectOp(e.key);
+  hist.skip = false; scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function drawHistory() {
+  const box = $("hist");
+  box.textContent = "";
+  const ids = new Set(hist.items.map(e => e.id));
+  [...hist.picked].forEach(i => { if (!ids.has(i)) hist.picked.delete(i); });
+  $("hall").checked = hist.items.length > 0 && hist.picked.size == hist.items.length;
+  $("hall").disabled = !hist.items.length;
+  $("hdel").disabled = !hist.picked.size;
+  $("hdel").setAttribute("aria-label", hist.picked.size ? "Delete " + hist.picked.size + " selected entries" : "Delete selected entries");
+  if (!hist.items.length) { box.appendChild(el("p", "empty", "Nothing here yet. Your calculations are saved automatically.")); return; }
+  hist.items.forEach(e => {
+    const row = el("div", "he"), left = el("div", "hl"), cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = hist.picked.has(e.id); cb.setAttribute("aria-label", "Select this entry");
+    cb.onchange = () => { cb.checked ? hist.picked.add(e.id) : hist.picked.delete(e.id); drawHistory(); };
+    const info = el("div");
+    info.appendChild(el("span", "a", e.op + " (" + e.dim + "D)" + (e.key == "sca" ? ", k = " + e.k : "")));
+    info.appendChild(el("small", "", e.vecs.map((v, j) => "V" + (j + 1) + " = (" + v.slice(0, e.dim).map(round).join(", ") + ")").join("   ")));
+    info.appendChild(el("small", "a", "Solved: " + expr(e.key, e.use || e.vecs.map((_, i) => i))));
+    e.ans.forEach(a => info.appendChild(el("small", "", a)));
+    info.appendChild(el("small", "", e.time));
+    left.append(cb, info);
+    const btns = el("div"), open = el("button", "sm", "Open"), del = el("button", "sm", "Delete");
+    del.style.marginLeft = "6px";
+    open.onclick = () => openHistory(e);
+    del.onclick = () => { hist.items = hist.items.filter(q => q.id != e.id); saveHistory(); drawHistory(); };
+    btns.append(open, del); row.append(left, btns); box.appendChild(row);
+  });
+}
+
+/* ---------- 8. Inputs & events ---------- */
+function buildTabs() {
+  Object.entries(OPS).forEach(([key, op]) => {
+    const b = el("button", "", op.name);
+    b.dataset.k = key; b.onclick = () => selectOp(key);
+    $("tabs").appendChild(b);
+  });
+}
+
+function selectOp(key) {
+  const prev = app.op;
+  app.op = key;
+  $("hint").textContent = OPS[key].hint;
+  $("kw").style.display = key == "sca" ? "" : "none";
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k == key));
+  const two = document.querySelector('input[name=d][value="2"]');
+  two.disabled = key == "crs";
+  $("l2").style.display = key == "crs" ? "none" : "";      /* cross product: hide the 2D option … */
+  if (key == "crs" && app.dim == 2) { app.prevDim = 2; setDimension(3); }
+  else if (key != "crs" && prev == "crs" && app.prevDim) { setDimension(app.prevDim); app.prevDim = 0; }
+  /* make sure there are enough vectors for this operation */
+  while (app.vecs.length < MINV[key]) { app.vecs.push([1, 1, 1]); const n = app.vecs.length - 1; app.multi.push(n); if (app.pair.length < 2) app.pair.push(n); }
+  /* hide buttons and the graph option that do not apply */
+  $("pall").style.display = key == "add" || key == "sub" ? "" : "none";
+  $("prev").style.display = key == "sub" || key == "crs" ? "" : "none";
+  $("lg").style.display = GRAPH[key] ? "" : "none";
+  drawVectorInputs(); render();
+}
+
+function setDimension(n) {
+  app.dim = n;
+  document.querySelector(`input[name=d][value="${n}"]`).checked = true;
+  $("rot").style.display = n == 3 ? "" : "none";
+  drawVectorInputs();
+}
+
+function drawVectorInputs() {
+  const box = $("vecs");
+  box.innerHTML = "";
+  app.vecs.forEach((v, i) => {
+    const row = el("div", "vrow");
+    row.innerHTML = `<span class="dot" style="background:${COL[i % 10]}"></span><b>V${i + 1}</b>`
+      + axes().map((a, j) => `<label>${a} <input type="number" step="any" value="${v[j]}" data-i="${i}" data-j="${j}"></label>`).join("")
+      + `<button class="sm" data-rm="${i}" ${app.vecs.length <= MINV[app.op] ? "disabled" : ""} aria-label="Remove V${i + 1}">Remove</button>`;
+    box.appendChild(row);
+  });
+  box.querySelectorAll("input").forEach(e => e.oninput = () => { app.vecs[e.dataset.i][e.dataset.j] = parseFloat(e.value) || 0; render(); });
+  box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => {
+    const q = +b.dataset.rm;
+    if (app.vecs.length <= MINV[app.op]) return;
+    app.vecs.splice(q, 1);
+    const fix = l => l.filter(x => x != q).map(x => x > q ? x - 1 : x);
+    app.multi = fix(app.multi); app.pair = fix(app.pair);
+    drawVectorInputs(); render();
+  });
+  drawChips();
+}
+
+function toggleHistory() {
+  const open = $("histpanel").hidden;               /* hidden now → show it */
+  $("histpanel").hidden = !open;
+  document.querySelector(".layout").classList.toggle("open", open);
+  $("htog").setAttribute("aria-expanded", open);
+}
+
+function bindEvents() {
+  $("htog").onclick = toggleHistory;
+  document.querySelectorAll("input[name=d]").forEach(e => e.onchange = () => { setDimension(+e.value); render(); });
+  $("add").onclick = () => {
+    if (app.vecs.length >= MAX_VECS) return;
+    app.vecs.push([1, 1, 1]);
+    app.multi.push(app.vecs.length - 1);
+    if (app.pair.length < 2) app.pair.push(app.vecs.length - 1);
+    drawVectorInputs(); render();
+  };
+  ["k", "yaw", "pit"].forEach(id => $(id).oninput = render);
+  $("showg").onchange = render;
+  $("dlp").onclick = downloadGraph;
+  $("cpy").onclick = copyResults;
+  $("pall").onclick = () => { app.use = app.vecs.map((_, i) => i).slice(0, isPair() ? 2 : MAX_VECS); drawChips(); render(); };
+  $("prev").onclick = () => { app.use.reverse(); drawChips(); render(); };
+  $("pclr").onclick = () => { app.use = []; drawChips(); render(); };
+  $("hall").onchange = () => { $("hall").checked ? hist.items.forEach(e => hist.picked.add(e.id)) : hist.picked.clear(); drawHistory(); };
+  $("hdel").onclick = () => { hist.items = hist.items.filter(e => !hist.picked.has(e.id)); hist.picked.clear(); saveHistory(); drawHistory(); };
+  addEventListener("input", () => hist.armed = true, true);
+  addEventListener("click", () => hist.armed = true, true);
+}
+
+/* ---------- 9. Start ---------- */
+try { hist.items = JSON.parse(localStorage.getItem("vec-hist") || "[]"); } catch (e) {}
+hist.items.forEach((e, i) => { if (!e.id) e.id = "h" + Date.now() + i; });
+buildTabs();
+bindEvents();
+drawHistory();
+drawVectorInputs();
+setDimension(2);
+selectOp("add");
+if (document.fonts) document.fonts.ready.then(render);
+/* hide the PNG button where the host cannot save files */
+if (window.claude && typeof window.claude.use === "function") getDownloads().then(d => { if (!d) $("dlp").style.display = "none"; });
+</script>
+</body>
+</html>
